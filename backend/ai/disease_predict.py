@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 import torch
 import torch.nn as nn
 from torchvision.models import mobilenet_v2
@@ -7,8 +8,18 @@ from PIL import Image
 from torchvision import transforms
 
 
-MODEL_PATH = "./ai/models/disease/disease_mobilenetv2_a5_plantdoc_best.pt"
-LABELS_PATH = "./ai/models/disease/class_names_38.json"
+MODEL_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "models",
+    "disease",
+    "disease_mobilenetv2_a5_plantdoc_best.pt"
+)
+LABELS_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "models",
+    "disease",
+    "class_names_38.json"
+)
 
 
 # ---------------------------------------------------------

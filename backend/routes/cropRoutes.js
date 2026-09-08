@@ -1,6 +1,7 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 const {
   analyzeCrop,
@@ -14,13 +15,18 @@ const router = express.Router();
 // MULTER STORAGE
 // =====================================================
 
+const cropUploadDir = path.join(__dirname, "../uploads/crops");
+if (!fs.existsSync(cropUploadDir)) {
+  fs.mkdirSync(cropUploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
 
   destination: (req, file, cb) => {
 
     cb(
       null,
-      "uploads/crops"
+      cropUploadDir
     );
 
   },

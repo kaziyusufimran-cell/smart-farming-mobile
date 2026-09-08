@@ -1,5 +1,6 @@
 import sys
 import json
+import os
 import torch
 import torch.nn as nn
 from torchvision.models import mobilenet_v2
@@ -7,7 +8,12 @@ from PIL import Image
 from torchvision import transforms
 
 
-MODEL_PATH = "./ai/models/checkpoints/deficiency_mobilenetv2_b3_600_best.pt"
+MODEL_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "models",
+    "checkpoints",
+    "deficiency_mobilenetv2_b3_600_best.pt"
+)
 
 
 # ---------------------------------------------------------

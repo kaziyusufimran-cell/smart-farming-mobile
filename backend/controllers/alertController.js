@@ -1,5 +1,6 @@
 const SensorData = require("../models/SensorData");
-const { sendSMS } = require("../services/twilioService");
+const Alert = require("../models/Alert");
+const { sendSMS } = require("../services/smsService");
 
 // ==========================================
 // GET ALERTS
@@ -185,15 +186,20 @@ const getAlerts = async (req, res) => {
 // ==========================================
 const testSMS = async (req, res) => {
   try {
-    const message =
-      req.body.message ||
-      "Smart Farming Alert: This is a test SMS from your farm monitoring system.";
+    const { message, phone, alertType } = req.body;
+    const msg =
+      message ||
+      "🚨 Smart Farming Alert: This is a test SMS from your farm monitoring system.";
 
-    const sms = await sendSMS(message);
+    const sms = await sendSMS({
+      message: msg,
+      alertType: alertType || "Test Alert",
+      recipientPhone: phone || null,
+    });
 
     res.status(200).json({
       success: true,
-      message: "SMS sent successfully",
+      message: "SMS dispatched successfully",
       sms,
     });
 
@@ -210,9 +216,40 @@ const testSMS = async (req, res) => {
 
 
 // ==========================================
+// GET ALERT HISTORY (From MongoDB)
+// GET /api/alerts/:deviceId/history or /api/alerts/history/all
+// ==========================================
+const getAlertHistory = async (req, res) => {
+  try {
+    const deviceId = req.params.deviceId;
+    const filter = deviceId && deviceId !== "all" ? { deviceId } : {};
+
+    const limit = parseInt(req.query.limit) || 50;
+    const alerts = await Alert.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    res.json({
+      success: true,
+      count: alerts.length,
+      alerts,
+    });
+  } catch (error) {
+    console.error("Alert history error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch alert history",
+      error: error.message,
+    });
+  }
+};
+
+
+// ==========================================
 // EXPORT CONTROLLERS
 // ==========================================
 module.exports = {
   getAlerts,
+  getAlertHistory,
   testSMS,
 };

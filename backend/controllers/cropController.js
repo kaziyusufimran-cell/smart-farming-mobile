@@ -1,5 +1,6 @@
 const { analyzeCropImage } = require("../ai/aiService");
 const AIResult = require("../models/AIResult");
+const { notifyAIAlert } = require("../services/smsService");
 
 
 // =====================================================
@@ -121,6 +122,30 @@ nutrientConfidence: result.deficiency?.confidence || 0,
       savedResult._id
     );
 
+    // =================================================
+    // TRIGGER SMS ALERTS FOR PEST / DISEASE (ASYNC)
+    // =================================================
+    const deviceId = req.body.deviceId || "ESP32-FARM-01";
+
+    if (result.yolo?.count > 0) {
+      const pestName = result.yolo?.detections?.[0]?.className || "Insect/Pest";
+      const pestConfidence = result.yolo?.detections?.[0]?.confidence || 0;
+      notifyAIAlert({
+        deviceId,
+        type: "PEST_DETECTED",
+        message: `🐛 PEST ALERT [${deviceId}]: ${pestName} detected (${pestConfidence}% confidence) on crop! Inspect immediately.`,
+        details: { pestName, confidence: pestConfidence },
+      }).catch((e) => console.error("Pest alert SMS error:", e.message));
+    } else if (result.ai?.healthy === false && result.ai?.confidence >= 70) {
+      const diseaseName = result.ai?.condition || result.ai?.classLabel || "Crop Disease";
+      const diseaseConf = result.ai?.confidence || 0;
+      notifyAIAlert({
+        deviceId,
+        type: "CROP_DISEASE_DETECTED",
+        message: `🍂 DISEASE ALERT [${deviceId}]: ${diseaseName} detected (${diseaseConf}% confidence). Remove affected leaves.`,
+        details: { disease: diseaseName, confidence: diseaseConf },
+      }).catch((e) => console.error("Disease alert SMS error:", e.message));
+    }
 
     // =================================================
     // SEND RESPONSE TO REACT

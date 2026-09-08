@@ -1,4 +1,5 @@
 const SensorData = require("../models/SensorData");
+const { checkSensorAlertsAndNotify } = require("../services/smsService");
 
 // Receive sensor data from ESP32
 const receiveSensorData = async (req, res) => {
@@ -25,6 +26,11 @@ const receiveSensorData = async (req, res) => {
 
       tankLevel: data.tankLevel,
       pumpStatus: data.pumpStatus,
+    });
+
+    // Check alerts and send SMS asynchronously without blocking the response
+    checkSensorAlertsAndNotify(sensorData).catch((err) => {
+      console.error("Alert check background error:", err.message);
     });
 
     res.status(201).json({

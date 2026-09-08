@@ -1,6 +1,6 @@
 const {
   analyzeCropImage,
-} = require("./cropController");
+} = require("../ai/aiService");
 
 
 const receiveCameraImage = async (
